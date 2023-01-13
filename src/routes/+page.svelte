@@ -6,6 +6,7 @@
 	let bookings = $page.data.bookings;
 	let validBooking = false;
 	let dateError = false;
+	let bookingClash = false;
 	/**
 	 * @type {any}
 	 */
@@ -35,17 +36,24 @@
 		return (x1 >= y1 && x2 <= y2) || (x1 <= y1 && x2 >= y2);
 	}
 	function validateBookings() {
+		bookings.sort((a, b) => {
+			const nA = a.arrive.replace(/\D/g, '');
+			const nB = b.arrive.replace(/\D/g, '');
+			const result = Number.parseInt(nA) - Number.parseInt(nB);
+			return result;
+		});
 		validBooking = true;
 		dateError = false;
+		bookingClash = false;
 		if (arrive > depart) {
 			validBooking = false;
 			dateError = true;
-			return;
 		}
 		bookings = bookings.map((booking) => {
 			const overlap = isContains(booking) || isOverlap(booking);
 			if (overlap) {
 				validBooking = false;
+				bookingClash = true;
 			}
 			return { ...booking, overlap };
 		});
@@ -55,8 +63,8 @@
 <section>
 	<h1>Transkei-er</h1>
 	<p>
-		<span>Kom kuier by ons in die Transkei!</span> <br />
-		<em>Come visit us in the Transkei!</em>
+		<em>Kom kuier by ons in die Transkei!</em><br />
+		<span>Come visit us in the Transkei!</span>
 	</p>
 
 	<form method="post">
@@ -100,24 +108,37 @@
 	{#if $page.form?.success === false}
 		<div class="error">Looks like your date might be clashing with another...</div>
 	{/if}
+	{#if bookingClash}
+		<div class="error">Looks like you have a clash...</div>
+	{/if}
+	{#if dateError}
+		<div class="error">Check your dates...</div>
+	{/if}
 	<br />
 	<h2>Already booked dates:</h2>
-	{#each bookings as booking}
-		<div class={`right ${booking.overlap ? 'error' : ''}`}>
-			{booking.name}: {booking.arrive} ~ {booking.depart}
-		</div>
-	{/each}
+	<table>
+		{#each bookings as booking}
+			<tr >
+				<td class="right">{booking.name}: </td>
+				<td class={`${booking.overlap ? 'error' : ''}`}> {booking.arrive} ~ {booking.depart}</td>
+			</tr>
+		{/each}
+	</table>
 </section>
 
 <style>
-section {
-    margin: auto;
-    text-align: center;
-    font-family: cursive;
-    /* background-image: url('https://bulungula.co.za/wp-content/uploads/2021/10/hut--scaled.jpg'); */
-}
+	section {
+		margin: auto;
+		text-align: center;
+		font-family: cursive;
+		/* background-image: url('https://bulungula.co.za/wp-content/uploads/2021/10/hut--scaled.jpg'); */
+	}
+	table {
+		margin: auto;
+		border-spacing: 10px;
+	}
 	.right {
-		text-justify: right;
+		text-align: right;
 	}
 	.error {
 		color: red;

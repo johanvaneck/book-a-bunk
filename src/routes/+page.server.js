@@ -1,6 +1,11 @@
 import { supabaseClient } from '$lib/db';
 import { fail } from '@sveltejs/kit';
 
+/**
+ * @type {any[]}
+ */
+let globalBookings = [];
+
 /** @type {import('./$types').Actions} */
 export const actions = {
 	default: async (event) => {
@@ -11,39 +16,38 @@ export const actions = {
 		const arrive = formData.get('arrive')?.toString();
 		const depart = formData.get('depart')?.toString();
 
-		let { data: bookings, error } = await supabaseClient.from('bookings').select('*');
-
-		if (error) {
-			return fail(500, {
-				success: false,
-				message: 'Something went wrong with getting data from the database.'
-			});
-		}
-
-		if (arrive && depart && bookings && !isValidBooking(arrive, depart, bookings)) {
+		if (arrive && depart && !isValidBooking(arrive, depart, globalBookings)) {
 			return fail(400, { success: false, message: 'Invalid booking date.' });
 		}
 
 		const { error: writeError } = await supabaseClient
 			.from('bookings')
 			.insert({ name, arrive, depart });
-		
+
 		if (writeError) {
 			return fail(500, {
 				success: false,
 				message: 'Something went wrong with writing data to the database.'
 			});
 		}
-		return { success: true, bookings };
+		return { success: true };
 	}
 };
 /** @type {import('./$types').PageServerLoad} */
 export async function load() {
 	let { data: bookings, error } = await supabaseClient.from('bookings').select('*');
-	if (error) {
+	if (error || !bookings) {
 		return fail(500, { message: 'Something went wrong with the database.' });
+	} else {
+		bookings?.sort((a, b) => {
+			const nA = a.arrive.replace(/\D/g, '');
+			const nB = b.arrive.replace(/\D/g, '');
+			const result = Number.parseInt(nA) - Number.parseInt(nB);
+			return result;
+		});
+		globalBookings = bookings;
+		return { bookings };
 	}
-	return { bookings };
 }
 /**
  * @param {{arrive: any;depart: any;}} booking
