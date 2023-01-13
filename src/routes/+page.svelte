@@ -118,9 +118,12 @@
 	<h2>Already booked dates:</h2>
 	<table>
 		{#each bookings as booking}
-			<tr >
+			<tr>
 				<td class="right">{booking.name}: </td>
-				<td class={`${booking.overlap ? 'error' : ''}`}> {booking.arrive} ~ {booking.depart}</td>
+				<td class={`left ${booking.overlap ? 'error' : ''}`}>
+					{booking.arrive} <br />
+					~ {booking.depart}</td
+				>
 			</tr>
 		{/each}
 	</table>
@@ -136,6 +139,9 @@
 	table {
 		margin: auto;
 		border-spacing: 10px;
+	}
+	.left {
+		text-align: left;
 	}
 	.right {
 		text-align: right;
