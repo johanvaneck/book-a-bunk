@@ -110,6 +110,12 @@
 </section>
 
 <style>
+section {
+    margin: auto;
+    text-align: center;
+    font-family: cursive;
+    /* background-image: url('https://bulungula.co.za/wp-content/uploads/2021/10/hut--scaled.jpg'); */
+}
 	.right {
 		text-justify: right;
 	}
